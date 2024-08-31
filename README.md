@@ -48,7 +48,7 @@ sudo rfirewall start
 To stop the firewall:
 
 ```bash
-sudo rfirewall start
+sudo rfirewall stop
 ```
 
 ### Add a Custom Rule
