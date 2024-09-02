@@ -1,4 +1,10 @@
-use std::process;
+use std::{
+    process,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+};
 
 use pnet::{
     datalink::{self, Channel::Ethernet},
@@ -7,7 +13,7 @@ use pnet::{
 
 use crate::rules;
 
-pub fn start_monitor() {
+pub fn start_monitor(running: Arc<AtomicBool>) {
     let interfaces = datalink::interfaces();
     let rules = rules::get_rules::get_rules();
 
@@ -18,7 +24,10 @@ pub fn start_monitor() {
 
     let (_, mut rx) = match datalink::channel(&interface, Default::default()) {
         Ok(Ethernet(tx, rx)) => (tx, rx),
-        Ok(_) => panic!("Unhandled channel type"),
+        Ok(_) => {
+            eprintln!("Unhandled channel type");
+            process::exit(1); // Exit the program
+        }
         Err(e) => {
             eprintln!(
                 "An error occurred when creating the datalink channel: {}",
@@ -30,30 +39,48 @@ pub fn start_monitor() {
 
     println!("Monitoring on interface: {}", interface.name);
 
-    loop {
+    let rules_option = if rules.is_empty() { None } else { Some(rules) };
+
+    while running.load(Ordering::SeqCst) {
         match rx.next() {
             Ok(packet) => {
                 let ethernet = EthernetPacket::new(packet).unwrap();
-                handle_packet(&ethernet, &rules);
+                handle_packet(&ethernet, &rules_option);
             }
             Err(e) => {
-                eprintln!("An error occurred while reading: {}", e);
+                if e.kind() != std::io::ErrorKind::Interrupted {
+                    eprintln!("An error occurred while reading packets: {}", e);
+                } else {
+                    break;
+                }
             }
         }
     }
 }
 
-fn handle_packet(packet: &EthernetPacket, rules: &Vec<rules::model::Rule>) {
+pub fn stop_monitor(running: Arc<AtomicBool>) {
+    running.store(false, Ordering::SeqCst);
+}
+
+fn handle_packet(packet: &EthernetPacket, rules_option: &Option<Vec<rules::model::Rule>>) {
     println!("Received packet: {:?}", packet);
 
-    for rule in rules {
-        if rule.matches(packet) {
-            match rule.action.as_str() {
-                "allow" => println!("Packet allowed: {:?}", packet),
-                "deny" => println!("Packet denied: {:?}", packet),
-                _ => (),
+    if let Some(rules) = rules_option {
+        for rule in rules {
+            if rule.matches(packet) {
+                match rule.action.as_str() {
+                    "allow" => println!("Packet allowed: {:?}", packet),
+                    "deny" => println!("Packet denied: {:?}", packet),
+                    _ => println!("Default Packet allowed: {:?}", packet),
+                }
+                return;
             }
-            return;
         }
+    } else {
+        // Handle the case where no rules are defined
+        println!(
+            "No rules defined, default action: Packet allowed: {:?}",
+            packet
+        );
     }
 }
