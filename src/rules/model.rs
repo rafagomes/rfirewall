@@ -1,4 +1,3 @@
-
 use pnet::packet::ethernet::EthernetPacket;
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +21,11 @@ impl Rule {
         config::config_files::ensure_config_dir_exists();
 
         let rules = config::config_files::read_config_file("rules.json");
-        let mut rules: Vec<Rule> = serde_json::from_str(&rules).unwrap();
+        let mut rules: Vec<Rule> = match rules {
+            Some(contents) => serde_json::from_str(&contents).unwrap_or_else(|_| vec![]),
+            None => vec![],
+        };
+
         rules.push(new_rule);
 
         let serialized = serde_json::to_string(&rules).unwrap();
@@ -32,6 +35,10 @@ impl Rule {
     pub fn load() -> Vec<Rule> {
         config::config_files::ensure_config_dir_exists();
         let rules = config::config_files::read_config_file("rules.json");
-        return serde_json::from_str(&rules).unwrap();
+
+        match rules {
+            Some(contents) => serde_json::from_str(&contents).unwrap_or_else(|_| vec![]),
+            None => vec![],
+        }
     }
 }
