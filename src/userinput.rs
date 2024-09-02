@@ -1,8 +1,10 @@
+use std::sync::{atomic::AtomicBool, Arc};
+
 use clap::{Arg, ArgGroup, Command};
 
 use crate::{monitor, rules};
 
-pub fn handle_input() {
+pub fn handle_input(running: Arc<AtomicBool>) {
     let matches = Command::new("rust-firewall")
         .version("0.1.0")
         .author("rafagomes")
@@ -52,10 +54,8 @@ pub fn handle_input() {
         .get_matches();
 
     match matches.subcommand() {
-        Some(("start", _)) => monitor::package_monitor::start_monitor(),
-        Some(("stop", _)) => {
-            println!("Stopping the firewall");
-        }
+        Some(("start", _)) => monitor::package_monitor::start_monitor(running),
+        Some(("stop", _)) => monitor::package_monitor::stop_monitor(running),
         Some(("add-rule", add_rule_matches)) => {
             let allow = add_rule_matches.get_flag("allow");
             let deny = add_rule_matches.get_flag("deny");
