@@ -1,0 +1,14 @@
+{
+    "name": "rfirewall",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "rfirewall-client"
+    ],
+    "scripts": {
+        "build": "pnpm --filter rfirewall-client run build",
+        "dev": "pnpm --filter rfirewall-client run tauri:dev",
+        "test": "pnpm --filter rfirewall-client run test",
+        "tauri-build": "pnpm --filter rfirewall-client run tauri:build"
+    }
+}
