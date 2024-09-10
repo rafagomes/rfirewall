@@ -1,14 +1,40 @@
 use crate::core::packet_handler;
 use crate::core::rule::Rule;
-use pnet::datalink::{self, Channel::Ethernet};
 use pnet::packet::ethernet::EthernetPacket;
-use std::process;
+
+use crate::infrastructure::network::{
+    create_datalink_channel, get_network_interfaces, select_interface,
+};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
 };
 
-pub fn start_monitor(running: Arc<AtomicBool>) {
+pub struct Monitor {
+    pub running: Arc<AtomicBool>,
+}
+
+impl Monitor {
+    pub fn new(running: Arc<AtomicBool>) -> Self {
+        Self { running }
+    }
+
+    pub fn default() -> Self {
+        Self {
+            running: Arc::new(AtomicBool::new(true)),
+        }
+    }
+
+    pub fn start(&self) {
+        start_monitor(self.running.clone());
+    }
+
+    pub fn stop(&self) {
+        stop_monitor(self.running.clone());
+    }
+}
+
+fn start_monitor(running: Arc<AtomicBool>) {
     let interfaces = get_network_interfaces();
     let interface = select_interface(&interfaces);
 
@@ -21,44 +47,6 @@ pub fn start_monitor(running: Arc<AtomicBool>) {
 
 pub fn stop_monitor(running: Arc<AtomicBool>) {
     running.store(false, Ordering::SeqCst);
-}
-
-fn get_network_interfaces() -> Vec<datalink::NetworkInterface> {
-    datalink::interfaces()
-}
-
-fn select_interface(interfaces: &[datalink::NetworkInterface]) -> datalink::NetworkInterface {
-    interfaces
-        .iter()
-        .find(|iface| iface.is_up() && !iface.is_loopback())
-        .expect("No interfaces were found")
-        .clone()
-}
-
-fn create_datalink_channel(
-    interface: &datalink::NetworkInterface,
-) -> Box<dyn pnet::datalink::DataLinkReceiver> {
-    let (_, rx) = match datalink::channel(interface, Default::default()) {
-        Ok(Ethernet(_, rx)) => ((), rx), // Unpack the tuple and discard the transmitter (tx)
-        Ok(_) => {
-            eprintln!("Unhandled channel type");
-            process::exit(1);
-        }
-        Err(e) => {
-            eprintln!("Error creating the datalink channel: {}", e);
-            process::exit(1);
-        }
-    };
-    rx
-}
-
-fn get_rules_option() -> Option<Vec<Rule>> {
-    let rules = Rule::get_rules();
-    if rules.is_empty() {
-        None
-    } else {
-        Some(rules)
-    }
 }
 
 fn monitor_loop(
@@ -81,5 +69,14 @@ fn monitor_loop(
                 }
             }
         }
+    }
+}
+
+fn get_rules_option() -> Option<Vec<Rule>> {
+    let rules = Rule::get_rules();
+    if rules.is_empty() {
+        None
+    } else {
+        Some(rules)
     }
 }
