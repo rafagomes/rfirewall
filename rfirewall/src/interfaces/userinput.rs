@@ -3,7 +3,7 @@ use std::sync::{atomic::AtomicBool, Arc};
 use clap::{Arg, ArgGroup, Command};
 
 use crate::core::rule::Rule;
-use crate::infrastructure::monitor;
+use crate::infrastructure::monitor::Monitor;
 
 pub fn handle_input(running: Arc<AtomicBool>) {
     let matches = Command::new("rust-firewall")
@@ -54,9 +54,11 @@ pub fn handle_input(running: Arc<AtomicBool>) {
         )
         .get_matches();
 
+    let monitor = Monitor::new(running);
+
     match matches.subcommand() {
-        Some(("start", _)) => monitor::start_monitor(running),
-        Some(("stop", _)) => monitor::stop_monitor(running),
+        Some(("start", _)) => monitor.start(),
+        Some(("stop", _)) => monitor.stop(),
         Some(("add-rule", add_rule_matches)) => {
             let allow = add_rule_matches.get_flag("allow");
             let deny = add_rule_matches.get_flag("deny");
