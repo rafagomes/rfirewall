@@ -1,6 +1,5 @@
 use crate::core::packet_handler;
 use crate::core::rule::Rule;
-use crate::interfaces::{NetworkInterface, NetworkInterfaceDetails};
 use pnet::datalink::{self, Channel::Ethernet};
 use pnet::packet::ethernet::EthernetPacket;
 use std::process;
