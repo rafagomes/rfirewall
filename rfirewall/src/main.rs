@@ -1,3 +1,8 @@
+mod core;
+mod infrastructure;
+mod interfaces;
+
+use crate::interfaces::userinput;
 use signal_hook::{
     consts::{SIGINT, SIGTERM},
     iterator::Signals,
@@ -10,11 +15,6 @@ use std::{
     thread,
     time::Duration,
 };
-
-mod config;
-mod monitor;
-mod rules;
-mod userinput;
 
 fn main() {
     let running = Arc::new(AtomicBool::new(true));
@@ -39,7 +39,6 @@ fn main() {
         }
     });
 
-    // Handle user input, which will call start_monitor or stop_monitor based on user input
     userinput::handle_input(r.clone());
 
     // After user input, ensure the monitoring thread stops if it was started
