@@ -1,7 +1,7 @@
-use crate::core::rule;
+use crate::core::rule::Rule;
 use pnet::packet::ethernet::EthernetPacket;
 
-pub fn handle_packet(packet: &EthernetPacket, rules_option: &Option<Vec<rule::Rule>>) {
+pub fn handle_packet(packet: &EthernetPacket, rules_option: &Option<Vec<Rule>>) {
     println!("Received packet: {:?}", packet);
 
     if let Some(rules) = rules_option {
