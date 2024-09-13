@@ -60,8 +60,17 @@ pub fn handle_input(running: Arc<AtomicBool>) {
         Some(("start", _)) => monitor.start(),
         Some(("stop", _)) => monitor.stop(),
         Some(("add-rule", add_rule_matches)) => {
-            let allow = add_rule_matches.get_flag("allow");
+            let mut allow = add_rule_matches.get_flag("allow");
             let deny = add_rule_matches.get_flag("deny");
+
+            if allow && deny {
+                println!("Cannot allow and deny at the same time");
+                return;
+            }
+
+            if deny {
+                allow = false;
+            }
 
             let port: u16 = *add_rule_matches.get_one("port").expect("required");
             let ip = add_rule_matches.get_one::<String>("ip").expect("required");
@@ -69,7 +78,7 @@ pub fn handle_input(running: Arc<AtomicBool>) {
                 .get_one::<String>("protocol")
                 .expect("required");
 
-            Rule::add_rule(allow, deny, port, ip, protocol)
+            Rule::new(allow, port, ip, protocol);
         }
         _ => println!("No valid option was provided"),
     }
