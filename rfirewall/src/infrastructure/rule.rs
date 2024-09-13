@@ -1,6 +1,6 @@
 use crate::{core::rule::Rule, infrastructure::config};
 
-pub fn save(new_rule: Rule) {
+pub fn save(new_rule: &Rule) {
     config::ensure_config_dir_exists();
 
     let rules = config::read_config_file("rules.json");
@@ -9,7 +9,7 @@ pub fn save(new_rule: Rule) {
         None => vec![],
     };
 
-    rules.push(new_rule);
+    rules.push(new_rule.clone());
 
     let serialized = serde_json::to_string(&rules).unwrap();
     config::write_config_file("rules.json", &serialized);
