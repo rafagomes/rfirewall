@@ -1,19 +1,11 @@
-mod core;
-mod infrastructure;
-mod interfaces;
-
-use crate::interfaces::userinput;
+use rfirewall::interfaces::userinput;
 use signal_hook::{
     consts::{SIGINT, SIGTERM},
     iterator::Signals,
 };
-use std::{
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    thread,
-    time::Duration,
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
 };
 
 fn main() {
