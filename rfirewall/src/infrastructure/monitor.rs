@@ -1,10 +1,8 @@
-use crate::core::packet_handler;
 use crate::core::rule::Rule;
-use pnet::packet::ethernet::EthernetPacket;
-
 use crate::infrastructure::network::{
     create_datalink_channel, get_network_interfaces, select_interface,
 };
+use pnet::packet::ethernet::EthernetPacket;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -45,7 +43,7 @@ fn start_monitor(running: Arc<AtomicBool>) {
     monitor_loop(running, rx.as_mut(), &rules_option); // Dereference Box
 }
 
-pub fn stop_monitor(running: Arc<AtomicBool>) {
+fn stop_monitor(running: Arc<AtomicBool>) {
     running.store(false, Ordering::SeqCst);
 }
 
@@ -59,7 +57,7 @@ fn monitor_loop(
         match rx.next() {
             Ok(packet) => {
                 let ethernet = EthernetPacket::new(packet).unwrap();
-                packet_handler::handle_packet(&ethernet, &rules_option);
+                crate::core::packet_handler::handle_packet(&ethernet, &rules_option);
             }
             Err(e) => {
                 if e.kind() != std::io::ErrorKind::Interrupted {
