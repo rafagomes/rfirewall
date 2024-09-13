@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "rfirewall",  # Your Rust CLI
-    "rfirewall-client/src-tauri"  # Your Tauri Rust backend
+    "rfirewall",
+    "rfirewall-client/src-tauri"
 ]
