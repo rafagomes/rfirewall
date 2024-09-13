@@ -1,11 +1,38 @@
 "use client";
 
+import { invoke } from "@tauri-apps/api";
 import Link from "next/link";
 import { useState } from "react";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+
+  const startFirewall = async () => {
+    try {
+      await invoke("start_firewall");  // Call the Tauri command to start the firewall
+      setIsRunning(true);  // Update the UI state
+    } catch (error) {
+      console.error("Failed to start firewall:", error);
+    }
+  };
+
+  const stopFirewall = async () => {
+    try {
+      await invoke("stop_firewall");  // Call the Tauri command to stop the firewall
+      setIsRunning(false);  // Update the UI state
+    } catch (error) {
+      console.error("Failed to stop firewall:", error);
+    }
+  };
+
+  const handleStartStop = () => {
+    if (isRunning) {
+      stopFirewall();
+    } else {
+      startFirewall();
+    }
+  };
 
   return (
     <header className="bg-mutedSlateGray h-16 w-full flex items-center justify-between p-4">
@@ -26,7 +53,7 @@ export default function Header() {
               ? "bg-vibrantSlate hover:bg-royalBlue"
               : "bg-mutedTeal hover:bg-mutedTealHover"
           }`}
-          onClick={() => setIsRunning(!isRunning)}
+          onClick={handleStartStop}
         >
           {isRunning ? "Stop" : "Start"}
         </button>
