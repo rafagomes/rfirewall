@@ -1,5 +1,5 @@
 [workspace]
 members = [
     "rfirewall",
-    "rfirewall-client/src-tauri"
+    "rfirewall-client/src-tauri",
 ]

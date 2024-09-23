@@ -9,6 +9,7 @@
         "build": "pnpm --filter rfirewall-client run build",
         "dev": "pnpm --filter rfirewall-client run tauri:dev",
         "test": "pnpm --filter rfirewall-client run test",
+        "install-deps": "pnpm --filter rfirewall-client install",
         "tauri-build": "pnpm --filter rfirewall-client run tauri:build"
     }
 }
